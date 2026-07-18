@@ -1,0 +1,25 @@
+<h3>Welcome, {{ technicianName }}</h3>
+
+<div class="alert alert-info" *ngIf="loading">Loading...</div>
+<div class="alert alert-danger" *ngIf="error">{{ error }}</div>
+
+<div class="row mt-3" *ngIf="!loading && !error">
+  <div class="col-md-3 mb-3">
+    <div class="card text-white bg-warning"><div class="card-body"><h6>Pending Tests</h6><p class="display-4">{{ stats.pendingTests ?? 0 }}</p></div></div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card text-white bg-success"><div class="card-body"><h6>Completed Tests</h6><p class="display-4">{{ stats.completedTests ?? 0 }}</p></div></div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card text-white bg-info"><div class="card-body"><h6>Total Requests</h6><p class="display-4">{{ stats.totalRequests ?? 0 }}</p></div></div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card text-white bg-danger"><div class="card-body"><h6>Unpaid Bills</h6><p class="display-4">{{ stats.unpaidBills ?? 0 }}</p></div></div>
+  </div>
+</div>
+
+<div class="mt-3">
+  <a routerLink="/lab/pending-tests" class="btn btn-success mr-2">Pending Tests</a>
+  <a routerLink="/lab/billing" class="btn btn-outline-success mr-2">Billing</a>
+  <a routerLink="/lab/reports" class="btn btn-outline-success">Reports</a>
+</div>

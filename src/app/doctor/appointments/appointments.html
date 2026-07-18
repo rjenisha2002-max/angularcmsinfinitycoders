@@ -1,0 +1,39 @@
+<h3>Appointments</h3>
+
+<div class="btn-group mb-3">
+  <button class="btn" [class.btn-success]="currentSelection === 'today'" [class.btn-outline-success]="currentSelection !== 'today'" (click)="load('today')">Today</button>
+  <button class="btn" [class.btn-success]="currentSelection === 'tomorrow'" [class.btn-outline-success]="currentSelection !== 'tomorrow'" (click)="load('tomorrow')">Tomorrow</button>
+</div>
+
+<div class="alert alert-info" *ngIf="loading">Loading...</div>
+<div class="alert alert-danger" *ngIf="error">{{ error }}</div>
+
+<table class="table table-bordered table-hover bg-white" *ngIf="!loading && !error">
+  <thead class="thead-light">
+    <tr>
+      <th>Token #</th>
+      <th>Patient</th>
+      <th>MMR Code</th>
+      <th>Age/Gender</th>
+      <th>Time</th>
+      <th>Status</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let a of appointments">
+      <td>{{ a.tokenNumber }}</td>
+      <td>{{ a.fullName }}</td>
+      <td>{{ a.mmrCode }}</td>
+      <td>{{ a.age }} / {{ a.gender }}</td>
+      <td>{{ a.appointmentTime }}</td>
+      <td><span class="badge" [class.badge-success]="a.status === 'Completed'" [class.badge-warning]="a.status === 'Scheduled'" [class.badge-danger]="a.status === 'Cancelled'">{{ a.status }}</span></td>
+      <td>
+        <a class="btn btn-sm btn-primary" [routerLink]="['/doctor/consultation', a.appointmentId]" *ngIf="a.status === 'Scheduled'">Start Consultation</a>
+      </td>
+    </tr>
+    <tr *ngIf="appointments.length === 0">
+      <td colspan="7" class="text-center text-muted">No appointments found.</td>
+    </tr>
+  </tbody>
+</table>

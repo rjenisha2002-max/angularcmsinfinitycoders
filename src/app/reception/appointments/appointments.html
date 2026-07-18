@@ -1,0 +1,99 @@
+<h3>Appointments</h3>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="form-row align-items-end">
+      <div class="form-group col-md-2">
+        <label>Department</label>
+        <select class="form-control" [(ngModel)]="filter.departmentId">
+          <option value="">All</option>
+          <option *ngFor="let d of departments" [value]="d.departmentId">{{ d.departmentName }}</option>
+        </select>
+      </div>
+      <div class="form-group col-md-2">
+        <label>Doctor</label>
+        <select class="form-control" [(ngModel)]="filter.doctorId">
+          <option value="">All</option>
+          <option *ngFor="let d of doctors" [value]="d.doctorId">{{ d.fullName }}</option>
+        </select>
+      </div>
+      <div class="form-group col-md-2">
+        <label>Patient Code</label>
+        <input class="form-control" [(ngModel)]="filter.patientCode" />
+      </div>
+      <div class="form-group col-md-2">
+        <label>From</label>
+        <input type="date" class="form-control" [(ngModel)]="filter.fromDate" />
+      </div>
+      <div class="form-group col-md-2">
+        <label>To</label>
+        <input type="date" class="form-control" [(ngModel)]="filter.toDate" />
+      </div>
+      <div class="form-group col-md-2">
+        <button class="btn btn-success btn-block" (click)="load()">Filter</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" (click)="openBookingForm()">+ Book Appointment</button>
+  </div>
+</div>
+
+<div class="alert alert-info" *ngIf="loading">Loading...</div>
+<div class="alert alert-danger" *ngIf="error">{{ error }}</div>
+<div class="alert alert-success" *ngIf="message">{{ message }}</div>
+
+<table class="table table-bordered bg-white" *ngIf="!loading">
+  <thead class="thead-light">
+    <tr><th>Appt #</th><th>Patient</th><th>Doctor</th><th>Department</th><th>Date</th><th>Time</th><th>Status</th><th></th></tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let a of appointments">
+      <td>{{ a.appointmentNumber }}</td>
+      <td>{{ a.patientName }} ({{ a.patientCode }})</td>
+      <td>{{ a.doctorName }}</td>
+      <td>{{ a.departmentName }}</td>
+      <td>{{ a.appointmentDate | date: 'mediumDate' }}</td>
+      <td>{{ a.appointmentTime }}</td>
+      <td><span class="badge" [class.badge-success]="a.status === 'Completed'" [class.badge-warning]="a.status === 'Scheduled'" [class.badge-danger]="a.status === 'Cancelled'">{{ a.status }}</span></td>
+      <td><button class="btn btn-sm btn-outline-danger" *ngIf="a.status === 'Scheduled'" (click)="cancel(a.appointmentId)">Cancel</button></td>
+    </tr>
+    <tr *ngIf="appointments.length === 0"><td colspan="8" class="text-center text-muted">No appointments found.</td></tr>
+  </tbody>
+</table>
+
+<div class="card mt-3" *ngIf="showForm && createData">
+  <div class="card-body">
+    <h5>Book Appointment</h5>
+    <form (ngSubmit)="book()">
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          <label>Patient *</label>
+          <select class="form-control" [(ngModel)]="newAppointment.patientId" name="patientId" required>
+            <option [ngValue]="null">Select patient</option>
+            <option *ngFor="let p of createData.patients" [ngValue]="p.patientId">{{ p.fullName }} ({{ p.patientCode }})</option>
+          </select>
+        </div>
+        <div class="form-group col-md-6">
+          <label>Doctor *</label>
+          <select class="form-control" [(ngModel)]="newAppointment.doctorId" name="doctorId" required (ngModelChange)="onDoctorOrDateChange()">
+            <option [ngValue]="null">Select doctor</option>
+            <option *ngFor="let d of createData.doctors" [ngValue]="d.doctorId">{{ d.fullName }} - {{ d.departmentName }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          <label>Date *</label>
+          <input type="date" class="form-control" [(ngModel)]="newAppointment.appointmentDate" name="appointmentDate" required (ngModelChange)="onDoctorOrDateChange()" />
+        </div>
+        <div class="form-group col-md-6">
+          <label>Time *</label>
+          <input type="time" class="form-control" [(ngModel)]="newAppointment.appointmentTime" name="appointmentTime" required />
+        </div>
+      </div>
+      <p class="text-muted" *ngIf="bookedSlots.length">Already booked: {{ bookedSlots.join(', ') }}</p>
+
+      <button type="submit" class="btn btn-success mr-2">Book</button>
+      <button type="button" class="btn btn-outline-secondary" (click)="showForm = false">Cancel</button>
+    </form>
+  </div>
+</div>

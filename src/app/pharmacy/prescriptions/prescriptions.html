@@ -1,0 +1,43 @@
+<h3>Prescriptions</h3>
+
+<div class="alert alert-info" *ngIf="loading">Loading...</div>
+<div class="alert alert-danger" *ngIf="error">{{ error }}</div>
+<div class="alert alert-success" *ngIf="message">{{ message }}</div>
+
+<table class="table table-bordered bg-white" *ngIf="!loading">
+  <thead class="thead-light"><tr><th>#</th><th>Patient</th><th>Doctor</th><th>Date</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+    <tr *ngFor="let p of prescriptions">
+      <td>{{ p.prescriptionId }}</td>
+      <td>{{ p.patientName }}</td>
+      <td>{{ p.doctorName }}</td>
+      <td>{{ p.prescriptionDate | date: 'mediumDate' }}</td>
+      <td>
+        <select class="form-control form-control-sm" [ngModel]="p.status" (ngModelChange)="updateStatus(p.prescriptionId, $event)">
+          <option value="Pending">Pending</option>
+          <option value="Dispensed">Dispensed</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+      </td>
+      <td><button class="btn btn-sm btn-outline-primary" (click)="view(p.prescriptionId)">View</button></td>
+    </tr>
+    <tr *ngIf="prescriptions.length === 0"><td colspan="6" class="text-center text-muted">No prescriptions found.</td></tr>
+  </tbody>
+</table>
+
+<div class="card mt-3" *ngIf="selected">
+  <div class="card-body">
+    <button class="btn btn-sm btn-outline-secondary mb-2" (click)="selected = null">Close</button>
+    <h5>Prescription #{{ selected.prescriptionId }} - {{ selected.patientName }}</h5>
+    <p><strong>Doctor:</strong> {{ selected.doctorName }} &middot; <strong>Status:</strong> {{ selected.status }}</p>
+    <p *ngIf="selected.remarks"><strong>Remarks:</strong> {{ selected.remarks }}</p>
+    <table class="table table-sm table-bordered">
+      <thead><tr><th>Medicine</th><th>Dosage</th><th>Frequency</th><th>Duration</th><th>Qty</th><th>Instructions</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let i of selectedItems">
+          <td>{{ i.medicineName }}</td><td>{{ i.dosage }}</td><td>{{ i.frequency }}</td><td>{{ i.duration }}</td><td>{{ i.quantity }}</td><td>{{ i.instructions }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
