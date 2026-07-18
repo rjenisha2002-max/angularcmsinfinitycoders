@@ -22,6 +22,7 @@ import { ReceptionAppointments } from './reception/appointments/appointments';
 import { ReceptionBills } from './reception/bills/bills';
 import { ReceptionVisits } from './reception/visits/visits';
 import { ReceptionReports } from './reception/reports/reports';
+import { ReceptionRegisterPatient } from './reception/register-patient/register-patient';
 
 import { PharmacyDashboard } from './pharmacy/dashboard/dashboard';
 import { PharmacyMedicines } from './pharmacy/medicines/medicines';
@@ -33,6 +34,7 @@ import { PharmacyLogs } from './pharmacy/logs/logs';
 import { PharmacyReports } from './pharmacy/reports/reports';
 
 import { NotFound } from './shared/notfound/notfound';
+import { Layout } from './reception/layout/layout';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -64,14 +66,17 @@ export const routes: Routes = [
 
   {
     path: 'reception',
+    component: Layout,
     canActivate: [authGuard, roleGuard('Receptionist')],
     children: [
       { path: 'dashboard', component: ReceptionDashboard },
+      { path: 'register-patient', component: ReceptionRegisterPatient },
       { path: 'patients', component: ReceptionPatients },
       { path: 'appointments', component: ReceptionAppointments },
       { path: 'bills', component: ReceptionBills },
       { path: 'visits', component: ReceptionVisits },
-      { path: 'reports', component: ReceptionReports }
+      { path: 'reports', component: ReceptionReports },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },
 

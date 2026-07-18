@@ -1,19 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ReceptionService } from '../../services/reception-service';
-
-const EMPTY_PATIENT = {
-  patientId: 0,
-  fullName: '',
-  gender: '',
-  dob: '',
-  bloodGroup: '',
-  mobileNumber: '',
-  email: '',
-  address: '',
-  emergencyContactNumber: ''
-};
 
 @Component({
   selector: 'app-reception-patients',
@@ -30,10 +19,28 @@ export class ReceptionPatients implements OnInit {
   message = '';
 
   showForm = false;
-  isEditMode = false;
-  form: any = { ...EMPTY_PATIENT };
+  form: any = {};
+  age: number | null = null;
 
-  constructor(private receptionService: ReceptionService) {}
+  // Optional columns are hidden from the table when every visible
+  // patient has a blank value for them, so the table doesn't overflow
+  // with columns nobody has filled in yet.
+  columnVisibility = {
+    email: true,
+    alternateMobile: true,
+    bloodGroup: true,
+    aadhaarNumber: true,
+    address: true,
+    city: true,
+    state: true,
+    pincode: true,
+    emergencyContact: true
+  };
+
+  constructor(
+    private receptionService: ReceptionService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadAll();
@@ -44,6 +51,7 @@ export class ReceptionPatients implements OnInit {
     this.receptionService.getAllPatients().subscribe({
       next: (res) => {
         this.patients = res ?? [];
+        this.updateColumnVisibility();
         this.loading = false;
       },
       error: (err) => {
@@ -59,9 +67,10 @@ export class ReceptionPatients implements OnInit {
       return;
     }
     this.loading = true;
-    this.receptionService.searchPatients(this.searchBy, this.searchText).subscribe({
+    this.receptionService.searchPatients(this.searchText).subscribe({
       next: (res) => {
-        this.patients = res.results ?? [];
+        this.patients = res.patients ?? [];
+        this.updateColumnVisibility();
         this.loading = false;
       },
       error: (err) => {
@@ -71,20 +80,49 @@ export class ReceptionPatients implements OnInit {
     });
   }
 
-  openAddForm(): void {
-    this.isEditMode = false;
-    this.form = { ...EMPTY_PATIENT };
-    this.message = '';
-    this.error = '';
-    this.showForm = true;
+  private updateColumnVisibility(): void {
+    const anyHasValue = (field: string) =>
+      this.patients.some((p) => {
+        const v = p?.[field];
+        return v !== null && v !== undefined && String(v).trim().length > 0;
+      });
+
+    this.columnVisibility = {
+      email: anyHasValue('email'),
+      alternateMobile: anyHasValue('alternateMobile'),
+      bloodGroup: anyHasValue('bloodGroup'),
+      aadhaarNumber: anyHasValue('aadhaarNumber'),
+      address: anyHasValue('address'),
+      city: anyHasValue('city'),
+      state: anyHasValue('state'),
+      pincode: anyHasValue('pincode'),
+      emergencyContact: this.patients.some(
+        (p) => p?.emergencyContactNumber || p?.emergencyContactName
+      )
+    };
+  }
+
+  clearSearch(): void {
+    this.searchText = '';
+    this.loadAll();
+  }
+
+  goToRegister(): void {
+    this.router.navigate(['/reception/register-patient']);
+  }
+
+  bookAppointment(patient: any): void {
+    this.router.navigate(['/reception/appointments'], {
+      queryParams: { patientId: patient.patientId }
+    });
   }
 
   openEditForm(patient: any): void {
-    this.isEditMode = true;
     this.form = {
       ...patient,
       dob: patient.dob ? patient.dob.substring(0, 10) : ''
     };
+    this.age = patient.age ?? null;
     this.message = '';
     this.error = '';
     this.showForm = true;
@@ -94,30 +132,35 @@ export class ReceptionPatients implements OnInit {
     this.showForm = false;
   }
 
+  // Real-time age calculation as DOB changes, readonly Age box
+  onDobChange(): void {
+    if (!this.form.dob) {
+      this.age = null;
+      return;
+    }
+    const dob = new Date(this.form.dob);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    this.age = age;
+  }
+
   save(): void {
     this.error = '';
     this.message = '';
 
     const payload = { ...this.form };
 
-    if (this.isEditMode) {
-      this.receptionService.updatePatient(payload.patientId, payload).subscribe({
-        next: (res) => {
-          this.message = res.message;
-          this.showForm = false;
-          this.loadAll();
-        },
-        error: (err) => (this.error = err?.error?.message ?? 'Failed to update patient.')
-      });
-    } else {
-      this.receptionService.createPatient(payload).subscribe({
-        next: (res) => {
-          this.message = `Patient registered successfully. Code: ${res.patientCode}`;
-          this.showForm = false;
-          this.loadAll();
-        },
-        error: (err) => (this.error = err?.error?.message ?? 'Failed to register patient.')
-      });
-    }
+    this.receptionService.updatePatient(payload.patientId, payload).subscribe({
+      next: (res) => {
+        this.message = res.message;
+        this.showForm = false;
+        this.loadAll();
+      },
+      error: (err) => (this.error = err?.error?.message ?? 'Failed to update patient.')
+    });
   }
 }

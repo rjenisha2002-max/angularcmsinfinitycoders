@@ -21,9 +21,11 @@ export class ReceptionService {
     return this.http.post<any>(`${this.base}/patients`, patient);
   }
 
-  searchPatients(searchBy: string, searchText: string) {
-    return this.http.get<any>(`${this.base}/patients/search?searchBy=${searchBy}&searchText=${encodeURIComponent(searchText)}`);
-  }
+  searchPatients(searchText: string) {
+  return this.http.get<any>(
+    `${this.base}/receptionists/search-patient?keyword=${encodeURIComponent(searchText)}`
+  );
+}
 
   getAllPatients() {
     return this.http.get<any[]>(`${this.base}/patients`);
